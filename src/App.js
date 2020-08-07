@@ -1,36 +1,11 @@
 import React, { Component } from 'react';
 import * as Stats from 'stats-js';
 import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 const mouse = new THREE.Vector2(-1, -1);
-let mouseDown = false;
-let mouseStartPositionX = 0;
-let mouseStartPositionY = 0;
 
 class App extends Component {
-  onMouseDown(event) {
-    event.preventDefault();
-    mouseDown = true;
-    mouse.x = event.clientX;
-    mouse.y = event.clientY;
-    mouseStartPositionX = mouse.x;
-    mouseStartPositionY = mouse.y;
-  }
-
-  onMouseUp(event) {
-    event.preventDefault();
-    mouseDown = false;
-  }
-
-  onMouseMove(event) {
-    if (mouseDown) {
-      mouse.x = event.clientX;
-      mouse.y = event.clientY;
-      console.log(mouseStartPositionX, 'start');
-      console.log(mouse.x, 'now');
-    }
-  }
-
   componentDidMount() {
     let raycaster = new THREE.Raycaster();
     let scene = new THREE.Scene();
@@ -41,15 +16,17 @@ class App extends Component {
       120
     );
 
-    // stats
-    let stats = new Stats();
-    stats.showPanel(0);
-    document.body.appendChild(stats.dom);
-
     let renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
     this.mount.appendChild(renderer.domElement);
+
+    let controls = new OrbitControls(camera, renderer.domElement);
+
+    // stats
+    let stats = new Stats();
+    stats.showPanel(0);
+    document.body.appendChild(stats.dom);
 
     scene.background = new THREE.Color(0x000000);
 
@@ -72,12 +49,7 @@ class App extends Component {
 
       raycaster.setFromCamera(mouse, camera);
 
-      if (mouseDown) {
-        if (mouseStartPositionX !== mouse.x)
-          object.rotation.x += (mouse.x / 10000 - mouseStartPositionX / 10000);
-        if (mouseStartPositionY !== mouse.y)
-          object.rotation.y += (mouse.y / 10000 - mouseStartPositionY / 10000);
-      }
+      controls.update();
 
       renderer.render(scene, camera);
 
@@ -87,14 +59,7 @@ class App extends Component {
   }
 
   render() {
-    return (
-      <div
-        onMouseMove={this.onMouseMove}
-        onMouseDown={this.onMouseDown}
-        onMouseUp={this.onMouseUp}
-        ref={(ref) => (this.mount = ref)}
-      />
-    );
+    return <div ref={(ref) => (this.mount = ref)} />;
   }
 }
 
